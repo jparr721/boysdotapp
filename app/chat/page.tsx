@@ -133,7 +133,9 @@ export default function ChatPage() {
                       </div>
                       <div className="break-words">{message.text}</div>
                       <div className="text-xs mt-1 opacity-70">
-                        {formatDistanceToNow(message.timestamp, { addSuffix: true })}
+                        {
+                          formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })
+                        }
                       </div>
                     </div>
                   </div>

@@ -1,11 +1,5 @@
 // Server-side message structure
-export interface Message {
-  id: string;
-  chatId: string;
-  text: string;
-  timestamp: number;
-  sender: string;
-}
+import { Message } from "./schemas";
 
 // In-memory store for messages
 export const chatMessages: Record<string, Message[]> = {};

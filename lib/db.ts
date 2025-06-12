@@ -1,9 +1,9 @@
-import { Message } from "./socket";
+import { Message, DatabaseMessageSchema, DatabaseChatRoomSchema } from "./schemas";
 import { Pool } from 'pg';
 
 // Add type declaration for pg if missing
 declare module 'pg' {
-  interface PoolClient {}
+  interface PoolClient { }
 }
 
 // Create PostgreSQL connection pool
@@ -50,7 +50,7 @@ initDb();
 // Function to create a new chat room
 export async function createChatRoom(chatId: string): Promise<void> {
   try {
-    await pool.query('INSERT INTO chat_rooms (id) VALUES ($1) ON CONFLICT DO NOTHING', [chatId]);
+    await pool.query('INSERT INTO chat_rooms (id) VALUES ($1) ON CONFLICT (id) DO NOTHING', [chatId]);
   } catch (error) {
     console.error('Error creating chat room:', error);
     throw error;
@@ -61,7 +61,9 @@ export async function createChatRoom(chatId: string): Promise<void> {
 export async function getChatRoomIds(): Promise<string[]> {
   try {
     const result = await pool.query('SELECT id FROM chat_rooms');
-    return result.rows.map((row: { id: string }) => row.id);
+    // Validate and parse each row with Zod
+    const validatedRows = result.rows.map(row => DatabaseChatRoomSchema.parse(row));
+    return validatedRows.map(row => row.id);
   } catch (error) {
     console.error('Error getting chat room IDs:', error);
     return [];
@@ -73,7 +75,7 @@ export async function addMessage(message: Message): Promise<void> {
   try {
     // Make sure the chat room exists
     await createChatRoom(message.chatId);
-    
+
     // Insert the message
     await pool.query(
       'INSERT INTO messages (id, chat_id, text, sender, timestamp) VALUES ($1, $2, $3, $4, $5)',
@@ -92,13 +94,11 @@ export async function getChatRoomMessages(chatId: string): Promise<Message[]> {
       'SELECT id, chat_id as "chatId", text, sender, timestamp FROM messages WHERE chat_id = $1 ORDER BY timestamp ASC',
       [chatId]
     );
-    return result.rows;
+
+    // Parse and validate each row with Zod
+    return result.rows.map(row => DatabaseMessageSchema.parse(row));
   } catch (error) {
     console.error('Error getting chat room messages:', error);
     return [];
   }
 }
-
-// For backward compatibility, maintain the chatRooms object but it will be empty
-// as data is now stored in the database
-export const chatRooms: Record<string, Message[]> = {};
