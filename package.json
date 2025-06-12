@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "bun --hot server/socket-server.ts",
+    "dev": "bun server/socket-server.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
