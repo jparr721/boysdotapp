@@ -1,0 +1,17 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: boys-postgres
+    environment:
+      POSTGRES_USER: boys
+      POSTGRES_PASSWORD: boys
+      POSTGRES_DB: boys
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
